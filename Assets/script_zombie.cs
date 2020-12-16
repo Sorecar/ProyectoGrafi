@@ -34,6 +34,7 @@ public class script_zombie : MonoBehaviour
     Animator anim;
 
     bool mordidaEsValida = false;
+    public Transform refPiso;
 
     // Start is called before the first frame update
     void Start()
@@ -50,7 +51,10 @@ public class script_zombie : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        bool enPiso = Physics2D.OverlapCircle(refPiso.position, 1f, 1 << 8); //cuando el pie esta cerca del piso
+
         distanciaConPersonaje = Mathf.Abs(Personaje.position.x - transform.position.x);
+        bool pocaDistanciaVertical = Mathf.Abs(Personaje.position.y - transform.position.y) < 15f;
         switch (comportamiento)
         {
             case tipoComportamientoZombie.pasivo:
@@ -63,9 +67,11 @@ public class script_zombie : MonoBehaviour
                     if (transform.position.x < limiteCaminataIzq) direccion = 1;
                     if (transform.position.x > limiteCaminataDer) direccion = -1;
 
+                    //velocidad del animador
                     anim.speed = 1f;
-
-                    if (distanciaConPersonaje < entradaZonaPersecución) comportamiento = tipoComportamientoZombie.persecución;
+                    //entrar en zona persecucion
+                   
+                    if (distanciaConPersonaje < entradaZonaPersecución && !pocaDistanciaVertical) comportamiento = tipoComportamientoZombie.persecución;
                 }
                 break;
 
@@ -79,10 +85,14 @@ public class script_zombie : MonoBehaviour
                     if (Personaje.position.x > transform.position.x) direccion = 1;
                     if (Personaje.position.x < transform.position.x) direccion = -1;
 
+                    //velocidad del animador
                     anim.speed = 1.5f;
 
-                    if (distanciaConPersonaje > salidaZonaPersecución) comportamiento = tipoComportamientoZombie.pasivo;
+                    //volver a la zona pasiva
 
+                    if (distanciaConPersonaje > salidaZonaPersecución || pocaDistanciaVertical) comportamiento = tipoComportamientoZombie.pasivo;
+
+                    //entre a la zona de ataque
                     if (distanciaConPersonaje < distanciaAtaque) comportamiento = tipoComportamientoZombie.ataque;
                 }
                 break;
@@ -105,7 +115,12 @@ public class script_zombie : MonoBehaviour
                 }
                 }
                 break;
+
+                //si no hay piso poner en 0 su velocidad
+                if (!enPiso) rb.velocity = new Vector3(0, rb.velocity.y);
         }
+        
+
         transform.localScale = new Vector3(escalaOriginal.x * direccion, escalaOriginal.y, escalaOriginal.z);
     }
 

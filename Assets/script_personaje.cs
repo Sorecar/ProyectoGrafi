@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class script_personaje : MonoBehaviour
 {
@@ -29,6 +30,7 @@ public class script_personaje : MonoBehaviour
     public Transform camaraASacudir;
     float magnitudSacudida;
 
+
     public float magnitudReaccionDisparo = 100f;
     public GameObject particulasSangreVerde;
     public GameObject particulasMuchaSangreVerde;
@@ -36,6 +38,7 @@ public class script_personaje : MonoBehaviour
     public GameObject particulasSangrePersonaje;
 
     public UnityEngine.UI.Image mascaraDaño;
+    
 
     //energia
     int energiaMax = 5;
@@ -43,16 +46,30 @@ public class script_personaje : MonoBehaviour
     
     public TMPro.TextMeshProUGUI TextoVida;
 
+
+    //muerte
+    public UnityEngine.UI.Image telaNegra;
+    float valorAlfaDeseadoTelaNegra;
+
+
+
     void Start()
     {
         anim = GetComponent<Animator>();
         rb = GetComponent<Rigidbody2D>();
         energiaActual = energiaMax;
+
+
+        //fade in inicial
+        telaNegra.color = new Color(0, 0, 0, 1); //negro
+        valorAlfaDeseadoTelaNegra = 0; //transparente
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (energiaActual <= 0) return;
         float movX;
         movX = Input.GetAxis("Horizontal");
         anim.SetFloat("absMovX", Mathf.Abs(movX));
@@ -87,6 +104,10 @@ public class script_personaje : MonoBehaviour
             if (Input.GetButtonDown("Fire1")) disparar();
 
         }
+
+
+        if (Input.GetKeyDown(KeyCode.P)) SceneManager.LoadScene("SampleScene"); //fade out
+        if (Input.GetKeyDown(KeyCode.O)) valorAlfaDeseadoTelaNegra = 0; //fade in
 
     }
 
@@ -124,6 +145,7 @@ public class script_personaje : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (energiaActual <= 0) return;
         if (tieneArma)
         {
             //gire cabeza para mirar el mouse
@@ -162,6 +184,13 @@ public class script_personaje : MonoBehaviour
             magnitudSacudida *= .9f;
         }
         actualizarDisplay();
+
+        //Manejar la tela negra
+        float valorAlfa = Mathf.Lerp(telaNegra.color.a, valorAlfaDeseadoTelaNegra, .05f);
+        telaNegra.color = new Color(0, 0, 0, valorAlfa);
+
+        //Reiniciar escena cuando se  complete el FadeOut
+        if (valorAlfa > 0.9 && valorAlfaDeseadoTelaNegra ==1) SceneManager.LoadScene("SampleScene");
     }
 
     void actualizarDisplay(){
@@ -180,7 +209,10 @@ public class script_personaje : MonoBehaviour
         if(energiaActual <= 0){
             Debug.Log("muerto");
             actualizarDisplay();
-            Destroy(gameObject);
+            //Destroy(gameObject);
+
+            //comienza el proceso de la muerte 
+            anim.SetTrigger("muere");
         }else{
 
         Debug.Log("auch! ahora tengo " + energiaActual + " de " + energiaMax);
@@ -194,6 +226,12 @@ public class script_personaje : MonoBehaviour
         
         
         }
+
+    }
+
+    public void iniciarFadeOut()
+    {
+        valorAlfaDeseadoTelaNegra = 1; //FadeOut
 
     }
 }
