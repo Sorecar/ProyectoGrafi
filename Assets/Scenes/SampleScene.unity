@@ -3936,7 +3936,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fuerzaSalto: 900
-  enPiso: 1
+  enPiso: 0
   refPie: {fileID: 703071931}
   velX: 60
   contArma: {fileID: 1663514901}
